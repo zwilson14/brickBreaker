@@ -11,11 +11,11 @@
 // Global Variables and Constants
 //----------------------------------------------------------------------------------
 
-const float DEFAULT_PADDLE_SPEED                = 5.0f;
+const int DEFAULT_PADDLE_SPEED                  = 5;
 const int DEFAULT_PADDLE_WIDTH                  = 75;
 const int DEFAULT_PADDLE_HEIGHT                 = 15;
 
-const int DEFAULT_BALL_SPEED                    = 5;
+const int DEFAULT_BALL_SPEED                    = 1;
 const int DEFAULT_BALL_RADIUS                   = 7;
 
 const int INIT_WIDTH_BRICKS                     = 30;
@@ -75,8 +75,8 @@ typedef enum GameState {
 void movePlayer(Paddle *player, int screenHeight, int screenWidth);
 Brick initBricks(int posX, int posY, int width, int height, Color color);
 Ball createBall(float posX, float posY, Color color);
-bool ImpactX(Ball *b, int screenWidth, int screenHeight);
-bool ImpactY(Ball *b, int screenWidth, int screenHeight);
+//bool ImpactX(Ball *b, int screenWidth, int screenHeight);
+//bool ImpactY(Ball *b, int screenWidth, int screenHeight);
 void moveBall(Ball *b, int screenWidth, int screenHeight);
 
 //------------------------------------------------------------------------------------
@@ -108,7 +108,7 @@ int main(void)
         Ball.posX               = screenWidth / 2.0f;
         Ball.posY               = screenHeight / 2.0f;
         Ball.dirX               = 1;
-        Ball.dirY               = 1;
+        Ball.dirY               = 0;
         Ball.radius             = DEFAULT_BALL_RADIUS;
         Ball.color              = WHITE;
         Ball.velocity           = DEFAULT_BALL_SPEED;
@@ -224,15 +224,8 @@ Ball createBall(float posX, float posY, Color color)
 
 void moveBall(Ball *b, int screenWidth, int screenHeight)
 {
-    if(!ImpactX(&b, screenWidth, screenHeight))
-        b->posX += (b->dirX ? b->velocity : -b->velocity);
-    if(!ImpactY(&b, screenWidth, screenHeight))
-        b->posY += (b->dirY ? b->velocity : -b->velocity);
-}
-
-bool ImpactX(Ball *b, int screenWidth, int screenHeight)
-{
     // Sign Shifts
+    bool impactY = false;
     bool impactX = false;
 
     // Check for X Boundary Impact - Right Wall
@@ -248,7 +241,7 @@ bool ImpactX(Ball *b, int screenWidth, int screenHeight)
     }
     
     // Check for X Boundary Impact - Left Wall
-    else if ( b->dirX == 1 &&  ( (b->posX - b->radius) <= (BOUNDARY_THICKNESS) ) )
+    else if ( b->dirX == 0 &&  ( (b->posX - b->radius) <= (BOUNDARY_THICKNESS) ) )
     {
         impactX = true;
         b->dirX = !b->dirX;
@@ -257,15 +250,7 @@ bool ImpactX(Ball *b, int screenWidth, int screenHeight)
             b->posX -= b->velocity;
         else
             b->posX = BOUNDARY_THICKNESS + b->radius; // touch the wall            
-    }    
-    return impactX;
-}
-
-
-
-bool ImpactY(Ball *b, int screenWidth, int screenHeight)
-{
-     bool impactY = false;
+    } 
 
      // Check for Y Boundary Impact - Bottom Wall
     if ( b->dirY == 1 && ( (b->posY + b->radius) >= (screenHeight - BOUNDARY_THICKNESS) ) )
@@ -279,8 +264,8 @@ bool ImpactY(Ball *b, int screenWidth, int screenHeight)
             b->posY = screenHeight - BOUNDARY_THICKNESS - b->radius; // touch the wall            
     }       
 
-    // Check for Y Boundary Impact - Bottom Wall
-    else if ( b->dirY == 1 && ( (b->posY - b->radius) <= (BOUNDARY_THICKNESS) ) )
+    // Check for Y Boundary Impact - Top Wall
+    else if ( b->dirY == 0 && ( (b->posY - b->radius) <= (BOUNDARY_THICKNESS) ) )
     {
         impactY = true;
         b->dirY = !b->dirY;
@@ -289,7 +274,22 @@ bool ImpactY(Ball *b, int screenWidth, int screenHeight)
             b->posY -= b->velocity;
         else
             b->posY = BOUNDARY_THICKNESS + b->radius; // touch the wall            
-    }   
+    }
+    
+    if (!impactX)
+    {
+        if (b->dirX == 1)
+            b->posX += b->velocity;
+        else
+            b->posX -= b->velocity;
+    }
 
-    return impactY;
+    if(!impactY)
+    {
+        if (b->dirY == 1)
+            b->posY += b->velocity;
+        else
+            b->posY -= b->velocity;
+    }
 }
+

@@ -265,15 +265,15 @@ void moveBall(Ball *b, int screenWidth, int screenHeight)
     }       
 
     // Check for Y Boundary Impact - Top Wall
-    else if ( b->dirY == 0 && ( (b->posY - b->radius) <= (BOUNDARY_THICKNESS) ) )
+    else if ( b->dirY == 0 && ( (b->posY - b->radius) <= (BOUNDARY_THICKNESS * 4) ) )
     {
         impactY = true;
         b->dirY = !b->dirY;
 
-        if( (b->posY - b->radius - b->velocity) < (BOUNDARY_THICKNESS) )
+        if( (b->posY - b->radius - b->velocity) < (BOUNDARY_THICKNESS * 4) )
             b->posY -= b->velocity;
         else
-            b->posY = BOUNDARY_THICKNESS + b->radius; // touch the wall            
+            b->posY = (BOUNDARY_THICKNESS * 4) + b->radius; // touch the wall            
     }
     
     if (!impactX)

@@ -5,7 +5,10 @@
 
 #include "raylib.h"
 #include <stdlib.h>         
-#include <math.h>           
+#include <math.h>
+
+#define INIT_ROWS_OF_BRICKS 5
+#define INIT_COLS_OF_BRICKS 10
 
 //----------------------------------------------------------------------------------
 // Global Variables and Constants
@@ -18,9 +21,11 @@ const int DEFAULT_PADDLE_HEIGHT                 = 15;
 const int DEFAULT_BALL_SPEED                    = 1;
 const int DEFAULT_BALL_RADIUS                   = 7;
 
-const int INIT_WIDTH_BRICKS                     = 30;
-const int INIT_HEIGHT_BRICKS                    = 10;
-const int INIT_NUMBER_BRICKS                    = 20;
+const int INIT_WIDTH_BRICKS                     = 80;
+const int INIT_HEIGHT_BRICKS                    = 25;
+//const int INIT_NUMBER_BRICKS                    = 20;
+const int BRICK_WIDTH_PADDING                   = 5;
+const int BRICK_HEIGHT_PADDING                  = 5;
 
 const int BOUNDARY_THICKNESS                    = 15;
 
@@ -68,6 +73,23 @@ typedef enum GameState {
     STATE_GAMEOVER
 } GameState;
 
+//Array of bricks
+Brick bricks[INIT_ROWS_OF_BRICKS * INIT_COLS_OF_BRICKS];
+
+// 3D Array of bricks
+// Currently hard coded, will soon change over to utilize screen wdith/height based parsing
+// With buffers and brick dimensions
+
+// }
+//     { {}, {}, {}, {}, {} },
+//     { {}, {}, {}, {}, {} }, 
+//     { {}, {}, {}, {}, {} }, 
+//     { {}, {}, {}, {}, {} }, 
+//     { {}, {}, {}, {}, {} }
+// };
+
+int brickPositions[INIT_ROWS_OF_BRICKS][INIT_COLS_OF_BRICKS][2];
+
 //----------------------------------------------------------------------------------
 // Module Functions Declaration
 //----------------------------------------------------------------------------------
@@ -75,8 +97,6 @@ typedef enum GameState {
 void movePlayer(Paddle *player, int screenHeight, int screenWidth);
 Brick initBricks(int posX, int posY, int width, int height, Color color);
 Ball createBall(float posX, float posY, Color color);
-//bool ImpactX(Ball *b, int screenWidth, int screenHeight);
-//bool ImpactY(Ball *b, int screenWidth, int screenHeight);
 void moveBall(Ball *b, int screenWidth, int screenHeight);
 
 //------------------------------------------------------------------------------------
@@ -116,19 +136,19 @@ int main(void)
         Ball.alive              = true;
 
 
-    for (int i = 0; i < INIT_NUMBER_BRICKS; i++) 
+    //Init Bricks
+
+    int brickIndex = 0; //counter for storing bricks in array
+    for (int i = 0; i < INIT_ROWS_OF_BRICKS; i++)
     {
-        for (int j = 0; j < INIT_NUMBER_BRICKS / 5; j++) 
+        for(int j = 0; j < INIT_COLS_OF_BRICKS - 1; j++)
         {
-        
+            brickPositions[i][j][0] = (j * INIT_WIDTH_BRICKS) + (j * BRICK_WIDTH_PADDING) + BOUNDARY_THICKNESS + BRICK_WIDTH_PADDING;
+            brickPositions[i][j][1] = (i * INIT_HEIGHT_BRICKS) + (i * BRICK_HEIGHT_PADDING) + BOUNDARY_THICKNESS * 4 + BRICK_WIDTH_PADDING;
+
+            bricks[brickIndex] = initBricks( brickPositions[i][j][0], brickPositions[i][j][1], INIT_WIDTH_BRICKS, INIT_HEIGHT_BRICKS, RED);
         }
     }
-
-        // Brick bricks[INIT_NUMBER_BRICKS];
-        // bricks[i] = initBricks( (i * INIT_WIDTH_BRICKS + 2) + BOUNDARY_THICKNESS + 5 , BOUNDARY_THICKNESS * 5, 50, 20, RED);
-        // //bricks[i] = initBricks( (i * INIT_WIDTH_BRICKS + 2) + BOUNDARY_THICKNESS + 5 , BOUNDARY_THICKNESS * 5, 50, 20, RED);
-
-    //initBricks(int posX, int posY, int width, int height, Color color) 
 
     while (!WindowShouldClose())
     {
@@ -158,6 +178,15 @@ int main(void)
             DrawCircle(Ball.posX, Ball.posY, Ball.radius, Ball.color);
 
             // Draw Bricks
+            brickIndex = 0; //clear brick counter
+            for (int i = 0; i < INIT_ROWS_OF_BRICKS; i++) 
+            {
+                for (int j = 0; j < INIT_COLS_OF_BRICKS - 1; j++) 
+                {
+                    if(bricks[brickIndex].alive)
+                        DrawRectangle(brickPositions[i][j][0], brickPositions[i][j][1], INIT_WIDTH_BRICKS, INIT_HEIGHT_BRICKS, RED);
+                }
+            }
 
             DrawFPS(screenWidth - 80 - BOUNDARY_THICKNESS, 5 + BOUNDARY_THICKNESS);
         EndDrawing();
@@ -275,6 +304,20 @@ void moveBall(Ball *b, int screenWidth, int screenHeight)
         else
             b->posY = (BOUNDARY_THICKNESS * 4) + b->radius; // touch the wall            
     }
+
+    // Check for impact with bricks
+    if (ball.posY - ball.radius <= brickPositions[INIT_ROWS_OF_BRICKS][INIT_COLS_OF_BRICKS - 1][1] + INIT_HEIGHT_BRICKS + BRICK_HEIGHT_PADDING)
+
+        int brickIndex = 0; //clear brick counter
+        for (int i = 0; i < INIT_ROWS_OF_BRICKS; i++) 
+        {
+            for (int j = 0; j < INIT_COLS_OF_BRICKS - 1; j++) 
+            {
+                if(bricks[brickIndex].alive)
+                    DrawRectangle(brickPositions[i][j][0], brickPositions[i][j][1], INIT_WIDTH_BRICKS, INIT_HEIGHT_BRICKS, RED);
+            }
+        }
+
     
     if (!impactX)
     {

@@ -7,28 +7,32 @@
             "command": "C:/mingw64/bin/gcc.exe",
             "args": [
                 "-fdiagnostics-color=always",
-                "-g",                        // This enables the debugger!
+                "-g",
                 "${workspaceFolder}/src/main.c",
-                "-I", "C:/dev/raylib/src",
-                "-I", "C:/dev/raylib/src/external",
-                "-L", "C:/dev/raylib/src",
+                "-I",
+                "${workspaceFolder}/src/raylib/src",
+                "-L",
+                "${workspaceFolder}/src/raylib/src",
                 "-lraylib",
                 "-lopengl32",
                 "-lgdi32",
                 "-lwinmm",
                 "-std=c11",
                 "-Wall",
-                "-o", "${workspaceFolder}/game.exe"
+                "-o",
+                "${workspaceFolder}/game.exe"
             ],
             "options": {
-                "cwd": "C:/mingw64/bin"
+                "cwd": "${workspaceFolder}"
             },
-            "problemMatcher": ["$gcc"],
+            "problemMatcher": [
+                "$gcc"
+            ],
             "group": {
                 "kind": "build",
                 "isDefault": true
             },
-            "detail": "Links raylib and enables debugging symbols."
+            "detail": "Links local raylib and resolves library path issues."
         }
     ]
 }

@@ -306,8 +306,10 @@ void moveBall(Ball *b, int screenWidth, int screenHeight)
     }
 
     // Check for impact with bricks
-    if (ball.posY - ball.radius <= brickPositions[INIT_ROWS_OF_BRICKS][INIT_COLS_OF_BRICKS - 1][1] + INIT_HEIGHT_BRICKS + BRICK_HEIGHT_PADDING)
 
+    // If in region where bricks could even be (Below last layer of bricks + brick spacing margin)
+    if (b->posY - b->radius <= brickPositions[INIT_ROWS_OF_BRICKS][INIT_COLS_OF_BRICKS - 1][1] + INIT_HEIGHT_BRICKS + BRICK_HEIGHT_PADDING)
+    {
         int brickIndex = 0; //clear brick counter
         for (int i = 0; i < INIT_ROWS_OF_BRICKS; i++) 
         {
@@ -317,7 +319,7 @@ void moveBall(Ball *b, int screenWidth, int screenHeight)
                     DrawRectangle(brickPositions[i][j][0], brickPositions[i][j][1], INIT_WIDTH_BRICKS, INIT_HEIGHT_BRICKS, RED);
             }
         }
-
+    }
     
     if (!impactX)
     {

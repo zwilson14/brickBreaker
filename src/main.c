@@ -7,7 +7,7 @@
 #include <stdlib.h>         
 #include <math.h>
 
-#define INIT_ROWS_OF_BRICKS 5
+#define INIT_ROWS_OF_BRICKS 6
 #define INIT_COLS_OF_BRICKS 10
 
 //----------------------------------------------------------------------------------
@@ -137,7 +137,6 @@ int main(void)
 
 
     //Init Bricks
-
     int brickIndex = 0; //counter for storing bricks in array
     for (int i = 0; i < INIT_ROWS_OF_BRICKS; i++)
     {
@@ -149,6 +148,9 @@ int main(void)
             bricks[brickIndex] = initBricks( brickPositions[i][j][0], brickPositions[i][j][1], INIT_WIDTH_BRICKS, INIT_HEIGHT_BRICKS, RED);
         }
     }
+
+    // Array of the brick colors per row
+    Color brickColors[INIT_ROWS_OF_BRICKS] = { PURPLE, ORANGE, RED, YELLOW, GREEN, BLUE };
 
     while (!WindowShouldClose())
     {
@@ -184,7 +186,7 @@ int main(void)
                 for (int j = 0; j < INIT_COLS_OF_BRICKS - 1; j++) 
                 {
                     if(bricks[brickIndex].alive)
-                        DrawRectangle(brickPositions[i][j][0], brickPositions[i][j][1], INIT_WIDTH_BRICKS, INIT_HEIGHT_BRICKS, RED);
+                        DrawRectangle(brickPositions[i][j][0], brickPositions[i][j][1], INIT_WIDTH_BRICKS, INIT_HEIGHT_BRICKS, brickColors[i]);
                 }
             }
 

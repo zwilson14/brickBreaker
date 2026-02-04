@@ -16,9 +16,9 @@
 
 const int DEFAULT_PADDLE_SPEED                  = 5;
 const int DEFAULT_PADDLE_WIDTH                  = 75;
-const int DEFAULT_PADDLE_HEIGHT                 = 15;
+const int DEFAULT_PADDLE_HEIGHT                 = 20;
 
-const int DEFAULT_BALL_SPEED                    = 1;
+const int DEFAULT_BALL_SPEED                    = 5;
 const int DEFAULT_BALL_RADIUS                   = 7;
 
 const int INIT_WIDTH_BRICKS                     = 80;
@@ -97,7 +97,7 @@ int brickPositions[INIT_ROWS_OF_BRICKS][INIT_COLS_OF_BRICKS][2];
 void movePlayer(Paddle *player, int screenHeight, int screenWidth);
 Brick initBricks(int posX, int posY, int width, int height, Color color);
 Ball createBall(float posX, float posY, Color color);
-void moveBall(Ball *b, int screenWidth, int screenHeight);
+void moveBall(Ball *b, Paddle *p, int screenWidth, int screenHeight);
 
 //------------------------------------------------------------------------------------
 // Program main entry point
@@ -115,7 +115,7 @@ int main(void)
     // Init the player paddle
     Paddle Player;
         Player.posX             = screenWidth / 2.0f;     
-        Player.posY             = screenHeight - (float)(BOUNDARY_THICKNESS * 2);
+        Player.posY             = screenHeight - (float)(BOUNDARY_THICKNESS * 2) - DEFAULT_PADDLE_HEIGHT / 2.0f;
         Player.width            = DEFAULT_PADDLE_WIDTH;
         Player.height           = DEFAULT_PADDLE_HEIGHT;
         Player.velocity         = DEFAULT_PADDLE_SPEED;              
@@ -157,7 +157,7 @@ int main(void)
 
         // Update Player Position
         movePlayer(&Player, screenHeight, screenWidth);
-        moveBall(&Ball, screenWidth, screenHeight);
+        moveBall(&Ball, &Player, screenWidth, screenHeight);
 
         // Update the Screen
         BeginDrawing();
@@ -253,7 +253,7 @@ Ball createBall(float posX, float posY, Color color)
     return b;
 }
 
-void moveBall(Ball *b, int screenWidth, int screenHeight)
+void moveBall(Ball *b, Paddle *p,int screenWidth, int screenHeight)
 {
     // Sign Shifts
     bool impactY = false;
@@ -308,7 +308,6 @@ void moveBall(Ball *b, int screenWidth, int screenHeight)
     }
 
     // Check for impact with bricks
-
     // If in region where bricks could even be (Below last layer of bricks + brick spacing margin)
     if (b->posY - b->radius <= brickPositions[INIT_ROWS_OF_BRICKS][INIT_COLS_OF_BRICKS - 1][1] + INIT_HEIGHT_BRICKS + BRICK_HEIGHT_PADDING)
     {
@@ -323,6 +322,50 @@ void moveBall(Ball *b, int screenWidth, int screenHeight)
         }
     }
     
+    // Check for a colision with the paddle
+    // If in lower region of map where the paddle could even be
+    if (b->posY + b->radius + b->velocity >= p->posY )
+    {
+        // Check if above paddle
+        if(b->posY + b->radius > p->posY)
+        {
+
+            // Check if within paddle X bounds
+            if( (b->posX + b->radius>= p->posX) && (b->posX - b->radius<= p->posX + p->width) )
+            {
+            impactY = true;
+            b->dirY = !b->dirY;
+
+            if( (b->posY - b->radius - b->velocity) < (p->posY) )
+                b->posY -= b->velocity;
+            else
+                b->posY = (p->posY) - b->radius; // touch the paddle
+            }
+
+            // // Check if hitting left side of paddle
+            // else if( (b->posX + b->radius + b->velocity >= p->posX) && (b->posX < p->posX) && b->dirX == 1 )
+            // {
+            //     impactX = true;
+            //     b->dirX = 0; //move left
+
+            //     if( (b->posX + b->radius + b->velocity) < (p->posX) )
+            //         b->posX -= b->velocity;
+            //     else
+            //         b->posX = p->posX - b->radius; // touch the left side of paddle            
+            // }
+            // {
+            //     impactX = true;
+            //     b->dirX = 0; //move left
+
+            //     if( (b->posX + b->radius + b->velocity) > (p->posX) )
+            //         b->posX += b->velocity;
+            //     else
+            //         b->posX = p->posX - b->radius; // touch the paddle            
+            // }
+        }
+    }
+
+
     if (!impactX)
     {
         if (b->dirX == 1)
@@ -339,4 +382,7 @@ void moveBall(Ball *b, int screenWidth, int screenHeight)
             b->posY -= b->velocity;
     }
 }
+
+
+
 

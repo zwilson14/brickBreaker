@@ -23,11 +23,12 @@ const int DEFAULT_BALL_RADIUS                   = 7;
 
 const int INIT_WIDTH_BRICKS                     = 80;
 const int INIT_HEIGHT_BRICKS                    = 25;
-//const int INIT_NUMBER_BRICKS                    = 20;
 const int BRICK_WIDTH_PADDING                   = 5;
 const int BRICK_HEIGHT_PADDING                  = 5;
 
 const int BOUNDARY_THICKNESS                    = 15;
+
+const int INIT_PLAYER_LIVES                     = 3;
 
 //----------------------------------------------------------------------------------
 // Types and Structures Definition
@@ -54,7 +55,9 @@ typedef struct Paddle {
     float   velocity;                      
     Color   color;              
     float   counter;           
-    bool    alive;              
+    bool    alive;
+    int     score;
+    int     lives;              
 } Paddle;
 
 typedef struct Brick {
@@ -68,9 +71,11 @@ typedef struct Brick {
 } Brick;
 
 typedef enum GameState {
+    SCREEN_SAVER,
     STATE_MAINMENU,
     STATE_GAMEPLAY,
-    STATE_GAMEOVER
+    STATE_GAMEOVER,
+    DEMO_MODE
 } GameState;
 
 //Array of bricks
@@ -98,6 +103,8 @@ void movePlayer(Paddle *player, int screenHeight, int screenWidth);
 Brick initBricks(int posX, int posY, int width, int height, Color color);
 Ball createBall(float posX, float posY, Color color);
 void moveBall(Ball *b, Paddle *p, int screenWidth, int screenHeight);
+void initPlayer(Paddle *p, int screenWidth, int screenHeight);
+void initBall(Ball *b, int screenWidth, int screenHeight);
 
 //------------------------------------------------------------------------------------
 // Program main entry point
@@ -106,6 +113,7 @@ int main(void)
 {
     const int screenWidth = 800;
     const int screenHeight = 550;
+    int currentScreen = STATE_MAINMENU;
 
     InitWindow(screenWidth, screenHeight, "Brick Breaker");
 
@@ -114,26 +122,11 @@ int main(void)
 
     // Init the player paddle
     Paddle Player;
-        Player.posX             = screenWidth / 2.0f;     
-        Player.posY             = screenHeight - (float)(BOUNDARY_THICKNESS * 2) - DEFAULT_PADDLE_HEIGHT / 2.0f;
-        Player.width            = DEFAULT_PADDLE_WIDTH;
-        Player.height           = DEFAULT_PADDLE_HEIGHT;
-        Player.velocity         = DEFAULT_PADDLE_SPEED;              
-        Player.color            = BLUE; 
-        Player.counter          = 0.0f;   
-        Player.alive            = true;
+    initPlayer(&Player, screenWidth, screenHeight);
 
     // Init Ball
     Ball Ball;
-        Ball.posX               = screenWidth / 2.0f;
-        Ball.posY               = screenHeight / 2.0f;
-        Ball.dirX               = 1;
-        Ball.dirY               = 0;
-        Ball.radius             = DEFAULT_BALL_RADIUS;
-        Ball.color              = WHITE;
-        Ball.velocity           = DEFAULT_BALL_SPEED;
-        Ball.counter            = 0.0f;
-        Ball.alive              = true;
+    initBall(&Ball, screenWidth, screenHeight);
 
 
     //Init Bricks
@@ -154,44 +147,83 @@ int main(void)
 
     while (!WindowShouldClose())
     {
+        switch (currentScreen) 
+        {
+            case SCREEN_SAVER:
+                break;
 
-        // Update Player Position
-        movePlayer(&Player, screenHeight, screenWidth);
-        moveBall(&Ball, &Player, screenWidth, screenHeight);
+            case STATE_MAINMENU:
+                currentScreen = STATE_GAMEPLAY;
+                Player.lives = INIT_PLAYER_LIVES;
+                initPlayer(&Player, screenWidth, screenHeight);
+                initBall(&Ball, screenWidth, screenHeight);
+                break;
 
-        // Update the Screen
-        BeginDrawing();
+            case STATE_GAMEPLAY:
 
-            //Draw environment
-            ClearBackground(BLACK);
-            DrawRectangle(0, 0, screenWidth, BOUNDARY_THICKNESS, WHITE);
-            DrawRectangle(screenWidth - BOUNDARY_THICKNESS, 0, BOUNDARY_THICKNESS, screenHeight, WHITE);
-            DrawRectangle(0, 0, BOUNDARY_THICKNESS, screenHeight, WHITE);
-            DrawRectangle(0, screenHeight - BOUNDARY_THICKNESS, screenWidth, BOUNDARY_THICKNESS, WHITE);
-            
-            // Menu Bar
-            DrawRectangle(0, BOUNDARY_THICKNESS * 3, screenWidth, BOUNDARY_THICKNESS, WHITE);
-            DrawRectangle(BOUNDARY_THICKNESS, BOUNDARY_THICKNESS, screenWidth - (BOUNDARY_THICKNESS * 2), BOUNDARY_THICKNESS * 2, BLACK);
-        
-            // Draw Player Paddle
-            DrawRectangle(Player.posX, Player.posY, Player.width, Player.height, Player.color);
+                // Update Player Position
+                movePlayer(&Player, screenHeight, screenWidth);
+                moveBall(&Ball, &Player, screenWidth, screenHeight);
 
-            // Draw Ball
-            DrawCircle(Ball.posX, Ball.posY, Ball.radius, Ball.color);
+                // Update the Screen
+                BeginDrawing();
 
-            // Draw Bricks
-            brickIndex = 0; //clear brick counter
-            for (int i = 0; i < INIT_ROWS_OF_BRICKS; i++) 
-            {
-                for (int j = 0; j < INIT_COLS_OF_BRICKS - 1; j++) 
-                {
-                    if(bricks[brickIndex].alive)
-                        DrawRectangle(brickPositions[i][j][0], brickPositions[i][j][1], INIT_WIDTH_BRICKS, INIT_HEIGHT_BRICKS, brickColors[i]);
-                }
-            }
+                    //Draw environment
+                    ClearBackground(BLACK);
+                    DrawRectangle(0, 0, screenWidth, BOUNDARY_THICKNESS, WHITE);
+                    DrawRectangle(screenWidth - BOUNDARY_THICKNESS, 0, BOUNDARY_THICKNESS, screenHeight, WHITE);
+                    DrawRectangle(0, 0, BOUNDARY_THICKNESS, screenHeight, WHITE);
+                    DrawRectangle(0, screenHeight - BOUNDARY_THICKNESS, screenWidth, BOUNDARY_THICKNESS, WHITE);
+                    
+                    // Menu Bar
+                    DrawRectangle(0, BOUNDARY_THICKNESS * 3, screenWidth, BOUNDARY_THICKNESS, WHITE);
+                    DrawRectangle(BOUNDARY_THICKNESS, BOUNDARY_THICKNESS, screenWidth - (BOUNDARY_THICKNESS * 2), BOUNDARY_THICKNESS * 2, BLACK);
+                
+                    // Draw Player Paddle
+                    DrawRectangle(Player.posX, Player.posY, Player.width, Player.height, Player.color);
 
-            DrawFPS(screenWidth - 80 - BOUNDARY_THICKNESS, 5 + BOUNDARY_THICKNESS);
-        EndDrawing();
+                    // Draw Ball
+                    DrawCircle(Ball.posX, Ball.posY, Ball.radius, Ball.color);
+
+                    // Draw Bricks
+                    brickIndex = 0; //clear brick counter
+                    for (int i = 0; i < INIT_ROWS_OF_BRICKS; i++) 
+                    {
+                        for (int j = 0; j < INIT_COLS_OF_BRICKS - 1; j++) 
+                        {
+                            if(bricks[brickIndex].alive)
+                                DrawRectangle(brickPositions[i][j][0], brickPositions[i][j][1], INIT_WIDTH_BRICKS, INIT_HEIGHT_BRICKS, brickColors[i]);
+                        }
+                    }
+
+                    DrawFPS(screenWidth - 80 - BOUNDARY_THICKNESS, 5 + BOUNDARY_THICKNESS);
+                    DrawText(TextFormat("Lives: %i", Player.lives), 80 + BOUNDARY_THICKNESS, 5 + BOUNDARY_THICKNESS, 20, WHITE);
+                    //DrawText(TextFormat("Lives: %i", Player.lives), screenWidth - 80 - BOUNDARY_THICKNESS, 5 + BOUNDARY_THICKNESS, 20, WHITE);
+                EndDrawing();
+
+                if (Player.lives <= 0)
+                    currentScreen = STATE_GAMEOVER;
+
+                break;
+
+            case STATE_GAMEOVER:
+
+                if (IsKeyDown(KEY_ENTER))
+                    currentScreen = STATE_MAINMENU;
+
+                // Update the Screen
+                BeginDrawing();
+                ClearBackground(BLACK);
+                DrawText("GAME OVER", screenWidth/2 - 100, screenHeight/2 - 50, 40, RED);
+                DrawText("Press ENTER to return to Main Menu", screenWidth/2 - 200, screenHeight/2 + 10, 20, WHITE);
+                EndDrawing();
+                
+                break;
+
+            default:
+                break;
+        }
+
     }
 
     CloseWindow();
@@ -286,8 +318,12 @@ void moveBall(Ball *b, Paddle *p,int screenWidth, int screenHeight)
      // Check for Y Boundary Impact - Bottom Wall
     if ( b->dirY == 1 && ( (b->posY + b->radius) >= (screenHeight - BOUNDARY_THICKNESS) ) )
     {
+        p->lives -= 1;
         impactY = true;
         b->dirY = !b->dirY;
+
+        //reset ball to center of screen
+        initBall(b, screenWidth / 2.0f, screenHeight / 2.0f);
 
         if( (b->posY + b->radius + b->velocity) > (screenHeight - BOUNDARY_THICKNESS) )
             b->posY += b->velocity;
@@ -384,5 +420,30 @@ void moveBall(Ball *b, Paddle *p,int screenWidth, int screenHeight)
 }
 
 
+void initPlayer(Paddle *p, int screenWidth, int screenHeight)
+{
+    p->posX             = screenWidth / 2.0f;     
+    p->posY             = screenHeight - (float)(BOUNDARY_THICKNESS * 2) - DEFAULT_PADDLE_HEIGHT / 2.0f;
+    p->width            = DEFAULT_PADDLE_WIDTH;
+    p->height           = DEFAULT_PADDLE_HEIGHT;
+    p->velocity         = DEFAULT_PADDLE_SPEED;              
+    p->color            = BLUE; 
+    p->counter          = 0.0f;   
+    p->alive            = true;
+    p->score            = 0;
+    p->lives            = INIT_PLAYER_LIVES;
+}
 
+void initBall(Ball *b, int screenWidth, int screenHeight)
+{
+    b->posX          = screenWidth / 2.0f;
+    b->posY          = screenHeight / 2.0f;
+    b->dirX          = 1;
+    b->dirY          = 0;
+    b->radius        = DEFAULT_BALL_RADIUS;
+    b->color         = WHITE;
+    b->velocity      = DEFAULT_BALL_SPEED;
+    b->counter       = 0.0f;
+    b->alive         = true;
+}
 
